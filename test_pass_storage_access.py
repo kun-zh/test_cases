@@ -50,5 +50,33 @@ def test_tensorize_matmul():
     print(tvm.lower(s, [A, B, C], simple_mode=True))
 
 
+
+from te import tvm as te
+import te.lang.cce
+import topi 
+from topi.cce import util
+
+def caffe_relu_layer_cce(shape, dtype, negative_slope= 0, 
+			 kernel_name = "caffe_relu_layer_cce"):
+    util.check_shape_rule(shape)
+    inp_dtype = dtype.lower()    
+
+    with te.target.cce():
+        data = te.placeholder(shape, name="data", dtype=inp_dtype)
+        slope_tmp = te.const(negative_slope, dtype = inp_dtype)
+        tmp = te.lang.cce.vmuls(data, slope_tmp)
+        res_tmp = te.lang.cce.vmax(tmp, data)    
+        res = te.lang.cce.cast_to(res_tmp, inp_dtype)
+        sch = topi.generic.auto_schedule(res)
+
+    config = {"print_ir" : need_print, 
+	      "need_build" : need_build, 
+	      "name": kernel_name, 
+	      "cce_path" : cce_path, 
+	      "tensor_list" : [data, res]}
+
+    te.lang.cce.cce_build_code(sch, config)
+
+	
 if __name__ == "__main__":
     test_tensorize_matmul()
