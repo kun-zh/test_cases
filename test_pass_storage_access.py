@@ -51,7 +51,7 @@ def test_tensorize_matmul():
 
 
 
-from te import tvm as te
+from te import tvm
 import te.lang.cce
 import topi 
 from topi.cce import util
@@ -62,12 +62,12 @@ def caffe_relu_layer_cce(shape, dtype, negative_slope= 0,
     inp_dtype = dtype.lower()    
 
     with te.target.cce():
-        data = te.placeholder(shape, name="data", dtype=inp_dtype)
-        slope_tmp = te.const(negative_slope, dtype = inp_dtype)
+        data = tvm.placeholder(shape, name="data", dtype=inp_dtype)
+        slope_tmp = tvm.const(negative_slope, dtype = inp_dtype)
         tmp = te.lang.cce.vmuls(data, slope_tmp)
         res_tmp = te.lang.cce.vmax(tmp, data)    
         res = te.lang.cce.cast_to(res_tmp, inp_dtype)
-        sch = topi.generic.auto_schedule(res)
+        sch = generic.auto_schedule(res)
 
     config = {"print_ir" : need_print, 
 	      "need_build" : need_build, 
