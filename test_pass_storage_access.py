@@ -77,6 +77,11 @@ def caffe_relu_layer_cce(shape, dtype, negative_slope = 0,
 	
 
 	
+from te import tvm 	
+import te.lang.cce
+import topi
+from topi.cce import util
+
 def caffe_relu_layer_cce(shape, dtype, negative_slope = 0,
 			 kernel_name = "caffe_relu_layer_cce"):
     util.check_shape_rule(shape)
