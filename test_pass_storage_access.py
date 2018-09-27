@@ -56,7 +56,7 @@ import te.lang.cce
 import topi 
 from topi.cce import util
 
-def caffe_relu_layer_cce(shape, dtype, negative_slope= 0, 
+def caffe_relu_layer_cce(shape, dtype, negative_slope = 0, 
 			 kernel_name = "caffe_relu_layer_cce"):
     util.check_shape_rule(shape)
     inp_dtype = dtype.lower()    
@@ -65,8 +65,7 @@ def caffe_relu_layer_cce(shape, dtype, negative_slope= 0,
         data = tvm.placeholder(shape, name="data", dtype=inp_dtype)
         slope_tmp = tvm.const(negative_slope, dtype = inp_dtype)
         tmp = te.lang.cce.vmuls(data, slope_tmp)
-        res_tmp = te.lang.cce.vmax(tmp, data)    
-        res = te.lang.cce.cast_to(res_tmp, inp_dtype)
+        res = te.lang.cce.vmax(tmp, data) 
         sch = generic.auto_schedule(res)
 
     config = {"print_ir" : need_print, 
@@ -76,7 +75,25 @@ def caffe_relu_layer_cce(shape, dtype, negative_slope= 0,
 	      "tensor_list" : [data, res]}
 
     te.lang.cce.cce_build_code(sch, config)
+	
 
 	
+def caffe_relu_layer_cce(shape, dtype, negative_slope = 0,
+			 kernel_name = "caffe_relu_layer_cce"):
+    util.check_shape_rule(shape)
+    inp_dtype = dtype.lower()
+	
+    data = tvm.placeholder(shape, name="data", dtype=inp_dtype)
+    slope_tmp = tvm.const(negative_slope, dtype=inp_dtype)
+    res = tvm.compute(data.shape, 
+		      lambda *indices: tvm.select(data(*indices) > 0, data(*indices), data(*indices) * slope_tmp),
+		      name = "res")
+    sch = tvm.create_schedule(res.op)  
+	
+	
+    te.lang.cce.cce_build_code(sch, config)
+    
+  
+
 if __name__ == "__main__":
     test_tensorize_matmul()
