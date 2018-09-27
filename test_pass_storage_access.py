@@ -73,7 +73,6 @@ def caffe_relu_layer_cce(shape, dtype, negative_slope = 0,
 	      "name": kernel_name, 
 	      "cce_path" : cce_path, 
 	      "tensor_list" : [data, res]}
-
     te.lang.cce.cce_build_code(sch, config)
 	
 
@@ -90,7 +89,11 @@ def caffe_relu_layer_cce(shape, dtype, negative_slope = 0,
 		      name = "res")
     sch = tvm.create_schedule(res.op)  
 	
-	
+    config = {"print_ir" : need_print, 
+	      "need_build" : need_build,
+	      "name" : kernel_name,
+	      "cce_path" : cce_path,
+	      "tensor_list" : [data, res]}
     te.lang.cce.cce_build_code(sch, config)
     
   
